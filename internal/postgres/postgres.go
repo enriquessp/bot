@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
 	"github.com/what-is-bot/bot/internal"
@@ -13,7 +14,10 @@ type answerProvider struct {
 }
 
 func (a *answerProvider) Ask(internal.Question) ([]internal.Answer, error) {
-	return nil, nil
+	return []internal.Answer{internal.Answer{
+		Text: "A message from Postgres",
+	}}, nil
+	//	return nil, nil
 }
 
 func NewAnswerProvider() internal.AnswerProvider {

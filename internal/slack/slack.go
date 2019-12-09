@@ -13,7 +13,7 @@ import (
 
 func Start(c internal.Controller) {
 	slackToken := viper.GetString("slack_token")
-	fmt.Printf("Slack token %s \n", slackToken)
+	//fmt.Printf("Slack token %s \n", slackToken)
 
 	api := slack.New(slackToken,
 		slack.OptionDebug(true),
@@ -23,15 +23,15 @@ func Start(c internal.Controller) {
 	go rtm.ManageConnection()
 
 	for msg := range rtm.IncomingEvents {
-		fmt.Print("Event Received: ")
+		//fmt.Print("Event Received: ")
 		switch ev := msg.Data.(type) {
 		case *slack.HelloEvent:
 			// Ignore hello
 			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", "GQE33K0R4"))
 
 		case *slack.ConnectedEvent:
-			fmt.Println("Infos:", ev.Info)
-			fmt.Println("Connection counter:", ev.ConnectionCount)
+			//fmt.Println("Infos:", ev.Info)
+			//fmt.Println("Connection counter:", ev.ConnectionCount)
 			// Replace C2147483705 with your Channel ID
 			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", "GQE33K0R4"))
 
@@ -40,7 +40,10 @@ func Start(c internal.Controller) {
 			fmt.Println("Reaction: ", ev.Reaction)
 
 		case *slack.MessageEvent:
-			fmt.Printf("Message: %v\n", ev)
+			fmt.Printf("Message #############################: %v\n", ev.Channel)
+			fmt.Printf("Message #############################: %v\n", ev.Msg)
+			//			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", ev.Channel))
+			go sendAnswer(rtm, ev.Msg.Text, channelWriter{Buffer: new(bytes.Buffer), channel: ev.Channel}, c)
 
 		case *slack.PresenceChangeEvent:
 			fmt.Printf("Presence Change: %v\n", ev)
@@ -52,13 +55,13 @@ func Start(c internal.Controller) {
 			fmt.Printf("Error: %s\n", ev.Error())
 
 		case *slack.InvalidAuthEvent:
-			fmt.Printf("Invalid credentials")
+			//fmt.Printf("Invalid credentials")
 			return
 
 		default:
 
 			// Ignore other events..
-			// fmt.Printf("Unexpected: %v\n", msg.Data)
+			// //fmt.Printf("Unexpected: %v\n", msg.Data)
 		}
 	}
 }
@@ -66,4 +69,9 @@ func Start(c internal.Controller) {
 type channelWriter struct {
 	*bytes.Buffer
 	channel string
+}
+
+func sendAnswer(rtm *slack.RTM, question string, channelWriter channelWriter, c internal.Controller) {
+	c.Answer(question, channelWriter.Buffer)
+	rtm.SendMessage(rtm.NewOutgoingMessage(string(channelWriter.Buffer.Bytes()), channelWriter.channel))
 }

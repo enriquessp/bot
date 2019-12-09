@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"strings"
@@ -46,8 +47,9 @@ func (b *basicQuestionMatcher) Match(msg string) (Question, error) {
 		return NoQuestion, err
 	}
 	for _, greet := range b.greetings {
-		if index := strings.Index(transformedMsg, greet); index > 0 {
+		if index := strings.Index(transformedMsg, greet); index >= 0 {
 			termStartIndex := index + len(greet) + 1
+			fmt.Println(termStartIndex)
 			if termStartIndex > len(transformedMsg) {
 				return NoQuestion, nil
 			}
@@ -95,6 +97,9 @@ func (c *controller) Answer(msg string, out io.Writer) error {
 
 	if question == NoQuestion {
 		log.Println("no question")
+		jsonOut.Encode([]Answer{Answer{
+			Text: "Sorry! I diddn't understand your question.",
+		}})
 		return nil
 	}
 
